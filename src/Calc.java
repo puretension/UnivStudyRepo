@@ -1,7 +1,9 @@
 import java.io.*;
 
 class Calc {
-    int token; int value; int ch;
+    int token;
+    int value;
+    int ch;
     private PushbackInputStream input;
     final int NUMBER=256;
 
@@ -14,8 +16,7 @@ class Calc {
             try  {
                 ch = input.read();
                 if (ch == ' ' || ch == '\t' || ch == '\r') ;
-                else
-                if (Character.isDigit(ch)) {
+                else if (Character.isDigit(ch)) {
                     value = number( );
                     input.unread(ch);
                     return NUMBER;
@@ -53,57 +54,18 @@ class Calc {
         else error();
     }
 
-//    void command( ) {
-//        /* command -> expr '\n' */
-//        int result = aexp();		// TODO: [Remove this line!!]
-//        // Object result = expr();  // TODO: [Use this line for solution]
-//        if (token == '\n') /* end the parse and print the result */
-//            System.out.println(result);
-//        else error();
-//    }
 
     void command( ) {
-        Object result = expr();
-        if (token == '\n')
-            System.out.println(result);
+        //  int result = aexp(); //이렇게 하면 int(숫자)만 처리가능하다는 한계점
+        Object result = expr(); //expr()는 boolean(&,|,!)연산자와, 비교 연산자(<,>,==) 및 숫자 연산자(+,-) 모두 처리가능 -> Object타입 선언
+        /* command -> expr '\n' */
+        if (token == '\n') /* end the parse and print the result */
+            System.out.println("The result is " + result);
         else error();
     }
 
-
-//    Object expr() {
-//        /* <expr> -> <bexp> {& <bexp> | '|'<bexp>} | !<expr> | true | false */
-//        Object result;
-//        result = ""; // TODO: [Remove this line!!]
-//        if (token == '!'){
-//            // !<expr>
-//            match('!');
-//            result = !(boolean) expr();
-//        }
-//        else if (token == 't'){
-//            // true
-//            match('t');
-//            result = (boolean)true;
-//        }
-//        else if (token == 'f'){
-//            // false
-//            // TODO: [Fill in your code here]
-//        }
-//        else {
-//            /* <bexp> {& <bexp> | '|'<bexp>} */
-//            result = bexp();
-//            while (token == '&' || token == '|') {
-//                if (token == '&'){
-//                    // TODO: [Fill in your code here]
-//                }
-//                else if (token == '|'){
-//                    // TODO: [Fill in your code here]
-//                }
-//            }
-//        }
-//        return result;
-//    }
-
     Object expr() {
+        /* <expr> -> <bexp> {& <bexp> | '|'<bexp>} | !<expr> | true | false */
         Object result;
         if (token == '!'){
             match('!');
@@ -111,141 +73,134 @@ class Calc {
         }
         else if (token == 't'){
             match('t');
-            result = true;
+            result = (boolean)true;
         }
         else if (token == 'f'){
             match('f');
-            result = false;
+            result = (boolean)false; // 위의 token == 't'의 처리와 똑같다. 'f'이므로 boolean false로 해준다
         }
         else {
             result = bexp();
-//            while (token == '&' || token == '|') {
-//                Object bexpResult = bexp();
-//                if (token == '&'){
-//                    result = (boolean)result && (boolean)bexpResult;
-//                }
-//                else if (token == '|'){
-//                    result = (boolean)result || (boolean)bexpResult;
-//                }
-//            }
-            while (true) {
+            /* <bexp> {& <bexp> | '|'<bexp>} */
+            while (token == '&' || token == '|') {
                 if (token == '&'){
                     match('&');
                     Object bexpResult = bexp();
+                    // bexp 함수를 호출하여 관계 표현식의 결과를 가져오고, result값과 AND연산자로 결합하여 boolean값 판단한다
                     result = (boolean)result && (boolean)bexpResult;
                 }
-                else if (token == '|'){
+                else{
                     match('|');
                     Object bexpResult = bexp();
+                    // bexp 함수를 호출하여 관계 표현식의 결과를 가져오고, result값과 OR연산자로 결합하여 boolean값 판단한다
                     result = (boolean)result || (boolean)bexpResult;
-                }
-                else {
-                    break;
                 }
             }
         }
         return result;
     }
 
-//    Object bexp( ) {
-//        /* <bexp> -> <aexp> [<relop> <aexp>] */
-//        Object result;
-//        result = ""; // TODO: [Remove this line!!]
-//        int aexp1 = aexp();
-//        if (token == '<' || token == '>' || token == '=' || token == '!'){ // <relop>
-//            /* Check each string using relop(): "<", "<=", ">", ">=", "==", "!=" */
-//            // TODO: [Fill in your code here]
-//        }
-//        else {
-//            result = aexp1;
-//        }
-//        return result;
-//    }
-
     Object bexp( ) {
+        /* <bexp> -> <aexp> [<relop> <aexp>] */
+        Object result;
         int aexp1 = aexp();
-        if (token == '<' || token == '>' || token == '=' || token == '!'){
-            String operator = relop();
-            int aexp2 = aexp();
+        result = aexp1; // aexp1으로 일단 result를 초기화 시킨다!
+        if (token == '<' || token == '>' || token == '=' || token == '!'){ // <relop>
+            String operator = relop(); //관계연산자 꺼내오고
+            int aexp2 = aexp(); //산술연산자2
+
             switch (operator) {
-                case "==": return aexp1 == aexp2;
-                case "!=": return aexp1 != aexp2;
-                case "<": return aexp1 < aexp2;
-                case ">": return aexp1 > aexp2;
-                case "<=": return aexp1 <= aexp2;
-                case ">=": return aexp1 >= aexp2;
-                default: error();
+                //각 토큰에 해당값들 result에 넣어준다
+                case "==": result = aexp1 == aexp2; break;
+                case "!=": result = aexp1 != aexp2; break;
+                case "<":  result = aexp1 < aexp2;  break;
+                case ">":  result = aexp1 > aexp2;  break;
+                case "<=": result = aexp1 <= aexp2; break;
+                case ">=": result = aexp1 >= aexp2; break;
             }
         }
-        return aexp1;
-    }
-
-//    String relop() {
-//        /* <relop> -> ( < | <= | > | >= | == | != ) */
-//        String result = "";
-//        // TODO: [Fill in your code here]
-//        return result;
-//    }
-
-
-    String relop() {
-        StringBuilder result = new StringBuilder();
-        result.append((char) token);
-        match(token);
-        if (token == '=' || token == '>') {
-            result.append((char) token);
-            match(token);
+        else {
+            //위 조건문의 해당값 X시 역시나 aexp1으로 result를 초기화
+            result = aexp1;
         }
-        return result.toString();
+        return result;
     }
+
+    // TODO: [Fill in your code here]
+    String relop() {
+        //관계 연산자를 파싱하는 데 필요한 로직들
+        /* <relop> -> ( < | <= | > | >= | == | != ) */
+        String result = "";
+        // <, <=
+        if (token == '<') {
+            match('<');
+            if (token == '=') {
+                match('=');
+                result = "<=";
+            } else {
+                result = "<";
+            }
+        }
+        // >, >=
+        else if (token == '>') {
+            match('>');
+            if (token == '=') {
+                match('=');
+                result = ">=";
+            } else {
+                result = ">";
+            }
+        }
+        // ==
+        else if (token == '=') {
+            match('=');
+            if (token == '=') {
+                match('=');
+                result = "==";
+            }
+        }
+        // !=
+        else if (token == '!') {
+            match('!');
+            if (token == '=') {
+                match('=');
+                result = "!=";
+            }
+        }
+        return result;
+    }
+
 
     // TODO: [Modify code of aexp() for <aexp> -> <term> { + <term> | - <term> }]
-//    int aexp() {
-//        /* expr -> term { '+' term } */
-//        int result = term();
-//        while (token == '+') {
-//            match('+');
-//            result += term();
-//        }
-//        return result;
-//    }
-
     int aexp() {
+        /* expr -> term { '+' term } */
         int result = term();
+        // + 연산에 이어서 - (뺄셈)연산도 가능하게 추가
         while (token == '+' || token == '-') {
             int operation = token;
-            match(token);
+            match(token); // 연산자 소비시킴
             if (operation == '+')
-                result += term();
+                result += term(); //덧셈
             else
-                result -= term();
+                result -= term(); //뺄셈
         }
         return result;
     }
 
 
     // TODO: [Modify code of term() for <term> -> <factor> { * <factor> | / <factor>}]
-//    int term( ) {
-//        /* term -> factor { '*' factor } */
-//        int result = factor();
-//        while (token == '*') {
-//            match('*');
-//            result *= factor();
-//        }
-//        return result;
-//    }
-
     int term( ) {
         int result = factor();
+        //곱셈에 이어서 나눗셈도 추가
         while (token == '*' || token == '/') {
             int operation = token;
-            match(token);
+            match(token); //operator는 소모시킴
             if (operation == '*')
-                result *= factor();
+                result *= factor(); //곱셈 이라면 기존값에 factor(요소) 곱한다 => <factor> * <factor>
             else {
                 int divisor = factor();
                 if (divisor != 0)
-                    result /= divisor;
+                    result /= divisor; //나눗셈 이라면 기존값에 factor(요소) 나눈다 => <factor> / <factor>
                 else {
                     System.out.println("Error: Division by zero.");
                     System.exit(1);
