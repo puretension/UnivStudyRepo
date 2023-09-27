@@ -26,9 +26,12 @@ class Decls extends ArrayList<Decl> {
 	    this.add(d);
     }
     // TODO: [Insert the code of display()]
-	public void display(int level){
-		// Fill code here
-	}    
+    public void display(int level) {
+        for (Decl d : this) {
+            d.display(level); // 각각의 Decl 객체를 순회하며 display 메서드를 호출해 정보를 출력
+        }
+    }
+
 }
 
 class Decl extends Command {
@@ -50,6 +53,16 @@ class Decl extends Command {
     } // declaration
    
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Decl");
+        Indent.display(level + 1, "Type: " + type); // Decl의 타입 출력
+        Indent.display(level + 1, "Identifier: " + id); // Decl의 식별자 출력
+        if (expr != null) { // 값이 없을 수도 있을거 같아서 null check
+            expr.display(level + 1); // 값이 할당되었다면 해당 값을 출력
+        }
+    }
+
+
 }
 
 class Functions extends ArrayList<Function> {
@@ -88,6 +101,9 @@ class Type {
     protected Type(String s) { id = s; }
     public String toString ( ) { return id; }
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Type: " + id);
+    } //// 현재 Type 객체의 id를 출력
 }
 
 class ProtoType extends Type {
@@ -123,6 +139,13 @@ class Stmts extends Stmt {
 	     stmts.add(s);
     }
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Stmts"); // 현재 Stmts 객체를 출력
+        for (Stmt s : stmts) {
+            s.display(level + 1); // 각각의 Stmt 객체를 순회하며 display 메서드 호출
+        }
+    }
+
 }
 
 class Assignment extends Stmt {
@@ -142,6 +165,12 @@ class Assignment extends Stmt {
     }
     
     // TODO: [Insert the code of display()]
+
+    public void display(int level) {
+    Indent.display(level, "Assignment");
+    id.display(level + 1); // 할당문의 변수 이름을 출력
+    expr.display(level + 1); // 할당문의 값 또는 표현식을 출력
+    }
 }
 
 class If extends Stmt {
@@ -158,6 +187,13 @@ class If extends Stmt {
     }
     
     // TODO: [Insert the code of display()]
+    // Display the if statement with indentation
+    public void display(int level) {
+        Indent.display(level, "If");
+        expr.display(level + 1); // If 문의 조건 표현식 출력
+        stmt1.display(level + 1); // If 문 true일 때 실행되는 stmt 출력
+        stmt2.display(level + 1); // If 문 false일 때 실행되는 stmt 출력
+    }
 }
 
 class While extends Stmt {
@@ -170,6 +206,11 @@ class While extends Stmt {
     }
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "While");
+        expr.display(level + 2); // While 문의 조건 표현식을 출력
+        stmt.display(level + 2); // While 문 내의 stmt를 출력
+    }
 }
 
 class Let extends Stmt {
@@ -191,6 +232,12 @@ class Let extends Stmt {
     }
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Let");
+        Indent.display(level + 1, "Decls");
+        decls.display(level + 2); // Let 문 내의 변수 선언들을 출력
+        stmts.display(level + 1); // Let 문 내의 stmt들을 출력
+    }
 }
 
 class Read extends Stmt {
@@ -202,6 +249,10 @@ class Read extends Stmt {
     }
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Read");
+        id.display(level + 1); // Read 문에서 읽어들인 값을 저장할 변수의 이름을 출력
+    }
 }
 
 class Print extends Stmt {
@@ -212,6 +263,10 @@ class Print extends Stmt {
         expr = e;
     }
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Print");
+        expr.display(level + 1);
+    }
 }
 
 class Return extends Stmt {
@@ -278,6 +333,10 @@ class Identifier extends Expr {
     }
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Identifier: " + id);
+    }
+    // 식별자 이름을 출력
 }
 
 class Array extends Expr {
@@ -302,8 +361,8 @@ class Value extends Expr {
     
     Value(Type t) {
         type = t;  
-        if (type == Type.INT) value = new Integer(0);
-        if (type == Type.BOOL) value = new Boolean(false);
+        if (type == Type.INT) value = Integer.valueOf(0);
+        if (type == Type.BOOL) value = Boolean.valueOf(false);
         if (type == Type.STRING) value = "";
         undef = false;
     }
@@ -362,6 +421,10 @@ class Value extends Expr {
     }
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Value: " + toString());
+    }
+    // 값을 출력
 }
 
 class Binary extends Expr {
@@ -374,6 +437,12 @@ class Binary extends Expr {
     } // binary
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Binary");
+        op.display(level + 1); // 이진 연산의 연산자를 출력
+        expr1.display(level + 1); // 이진 연산의 첫 번째 피연산자를 출력
+        expr2.display(level + 1); // 이진 연산의 두 번째 피연산자를 출력
+    }
 }
 
 class Unary extends Expr {
@@ -388,6 +457,11 @@ class Unary extends Expr {
     
     // TODO: [Insert the code of display()]
 
+    public void display(int level) {
+        Indent.display(level, "Unary Expression: ");
+        op.display(level + 1); // 단항 연산의 연산자를 출력
+        expr.display(level + 2); // 단항 연산의 피연산자를 출력
+    }
 }
 
 class Operator {
@@ -406,4 +480,8 @@ class Operator {
     }
     
     // TODO: [Insert the code of display()]
+    public void display(int level) {
+        Indent.display(level, "Operator: " + val);
+    }
+    // 연산자 값을 출력
 }
