@@ -1,4 +1,4 @@
-package Lab2;// AST.java
+package assignment_parser.Lab2;// AST.java
 // AST for S
 import java.util.*;
 

@@ -1,5 +1,4 @@
-package Lab2;// Token.java
-import java.lang.Enum;
+package assignment_parser.Lab2;// Token.java
 
 enum Token {
      

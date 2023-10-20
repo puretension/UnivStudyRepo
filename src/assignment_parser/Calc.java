@@ -1,3 +1,5 @@
+package assignment_parser;
+
 import java.io.*;
 
 class Calc {

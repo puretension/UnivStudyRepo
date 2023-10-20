@@ -1,4 +1,4 @@
-package Lab2;// Parser.java
+package assignment_parser.Lab2;// Parser.java
 // Parser for language S
 
 public class Parser {
