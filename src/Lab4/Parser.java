@@ -1,4 +1,4 @@
-package assignment_s_interpreter.Lab3;// Parser.java
+package Lab4;// Parser.java
 // Parser for language S
 
 public class Parser {
@@ -43,20 +43,30 @@ public class Parser {
 	    return null;
     }
 
-    private Decl decl() { 
-    // <decl>  -> <type> id [=<expr>]; 
-        Type t = type();
-	    String id = match(Token.ID);
-	    Decl d = null;
-	    if (token == Token.ASSIGN) {
+    private Decl decl() {
+       // <decl> -> <type> id [n]; 
+       // <decl> -> <type> id [=<expr>];
+       Type t = type();
+	   String id = match(Token.ID);
+	   Decl d = null;
+
+	   if (token == Token.LBRACKET) {
+		   // TODO: [Fill the code for array declaration (<type> id [n];)]
+		   // Use the AST of "Decl (String s, Type t, int n)"
+		   // ex) Value n = literal();, n.intValue() ...
+           match(Token.LBRACKET);
+           Value n = literal();
+           match(Token.RBRACKET);
+           d = new Decl(id, t, n.intValue());
+       } else if (token == Token.ASSIGN) {
 	        match(Token.ASSIGN);
             Expr e = expr();
-	        d = new Decl(id, t, e);
-	    } else 
+	       d = new Decl(id, t, e);
+	   } else 
             d = new Decl(id, t);
-	    
-	    match(Token.SEMICOLON);
-	    return d;
+
+		match(Token.SEMICOLON);
+		return d;
     }
 
     private Decls decls () {
@@ -70,17 +80,19 @@ public class Parser {
     }
 
     private Type type () {
-    // <type>  ->  int | bool | string 
+    // <type>  ->  int | bool | void | string 
         Type t = null;
         switch (token) {
 	    case INT:
             t = Type.INT; break;
         case BOOL:
             t = Type.BOOL; break;
+        case VOID:
+            t = Type.VOID; break;
         case STRING:
             t = Type.STRING; break;
         default:
-	        error("int | bool | string");
+	        error("int | bool | void | string");
 	    }
         match(token);
         return t;       
@@ -101,14 +113,11 @@ public class Parser {
             s = ifStmt(); return s;
         case WHILE:      // while statement 
             s = whileStmt(); return s;
-        
-        // TODO: [case DO, FOR]
-        // student exercise
-        case DO: //do -> do while을 위함
-            s = doWhileStmt(); return s;
-        case FOR: //for
+	    case DO:      // while statement 
+            s = doStmt(); return s;
+	    case FOR:      // while statement 
             s = forStmt(); return s;
-        case ID:	// single assignment
+        case ID:	// assignment
             s = assignment(); return s;
 	    case LET:	// let statement 
             s = letStmt(); return s;
@@ -116,9 +125,9 @@ public class Parser {
             s = readStmt(); return s;
 	    case PRINT:	// print statment 
             s = printStmt(); return s;
-        default:  //다 해당안되면?
+        default:  
 	        error("Illegal stmt"); return null; 
-	    }
+	}
     }
   
     private Stmts stmts () {
@@ -142,7 +151,7 @@ public class Parser {
 
     private Read readStmt() {
     // <readStmt> -> read id;
-    	match(Token.READ);
+        match(Token.READ);
         Identifier id = new Identifier(match(Token.ID));
         match(Token.SEMICOLON);
         return new Read(id);
@@ -150,19 +159,36 @@ public class Parser {
 
     private Print printStmt() {
     // <printStmt> -> print <expr>;
-    	match(Token.PRINT);
+        match(Token.PRINT);
         Expr e = expr();
         match(Token.SEMICOLON);
         return new Print(e);
     }
 
     private Stmt assignment() {
-    // <assignment> -> id = <expr>;   
+    // <assignment> -> id[<expr>] = <expr>;
+    // <assignment> -> id = <expr>;
+
+	    Array ar = null;
         Identifier id = new Identifier(match(Token.ID));
+
+        if (token == Token.LBRACKET) {  // id[<expr>] = <expr>;
+        	// TODO: [Fill the code for assignment to array elements]
+        	// Set the AST of Array(Identifier s, Expr e) to Array ar
+            match(Token.LBRACKET);
+            Expr index = expr();
+            match(Token.RBRACKET);
+            ar = new Array(id, index);
+        }
+
         match(Token.ASSIGN);
         Expr e = expr();
         match(Token.SEMICOLON);
-        return new Assignment(id, e);
+
+        if (ar == null)
+            return new Assignment(id, e);
+        else
+            return new Assignment(ar, e);
     }
 
     private If ifStmt () {
@@ -183,80 +209,54 @@ public class Parser {
 
     private While whileStmt () {
     // <whileStmt> -> while (<expr>) <stmt>
-    	match(Token.WHILE);
+        match(Token.WHILE);
         match(Token.LPAREN);
         Expr e = expr();
         match(Token.RPAREN);
         Stmt s = stmt();
         return new While(e, s);
     }
-    
-    // TODO: [Implement dowhileStmt]
-    private Stmts doWhileStmt() {
-    	// check syntax <dowhileStmt> -> do <stmt> while (<expr>);
-    	// ==> generate AST of [<stmt> <whileStmt>]
-    	// student exercise
-        match(Token.DO); // 'do' 키워드를 파싱
-        Stmt s = stmt(); // 'do' 뒤에 오는 문장을 파싱하여 AST 노드로 가져옴
-        match(Token.WHILE); // 'while' 키워드를 파싱
-        match(Token.LPAREN); // 'while' 키워드 뒤에 오는 '('를 파싱
-        Expr e = expr(); // '(' 뒤에 오는 식을 파싱하여 AST 노드로 가져옴, do-while문의 조건식
-        match(Token.RPAREN); // 조건식 뒤에 오는 ')'를 파싱
-        match(Token.SEMICOLON); // ;
 
-        Stmts stmts = new Stmts(); // // Stmt* 객체를 생성(do-while 문의 body(1)과 조건식(1))
-        stmts.stmts.add(s);  // do-while 문의 'do' 부분을 추가
-
-        While whileStmt = new While(e, s);  // 'while'객체 생성
-        stmts.stmts.add(whileStmt);  // do에 이어서, body와 조건문까지 추가, ex) do {print(i); i++;} while(i<5)
-
-        return stmts;
+    private Stmts doStmt() {
+    // <doStmt> -> do <stmt> while (<expr>) 
+        match(Token.DO);
+        Stmt s = stmt();
+        match(Token.WHILE);
+        match(Token.LPAREN);
+        Expr e = expr();
+        match(Token.RPAREN);
+		match(Token.SEMICOLON);
+        Stmts ss = new Stmts(s); 
+        ss.stmts.add(new While(e, s));
+        return ss;
     }
 
-    // TODO: [Implement forStmt]
-    private Let forStmt() {
-        // check syntax <forStmt> -> for (<type> id = <expr>; <expr>; id = <expr>) <stmt>
-        // ==> generate AST of [let <type> id = <expr> in while(<expr>) <stmt> end]
-        // student exercise
-
-        match(Token.FOR); // for 키워드 가져오기, for
-        match(Token.LPAREN); // (
-        Type t = type(); // for 루프 반복 변수의 타입 파싱, ex) int
-        String id = match(Token.ID); // 반복 변수의 이름 파싱(for루프의 반복 변수의 이름을 'id'라는 문자열 변수에 저장, ex) i
-        match(Token.ASSIGN); // 초기값 할당, =
-        Expr initExpr = expr();  // 초기화, 0
-        match(Token.SEMICOLON); // ;
-        Expr condition = expr();  // 조건 검사, ex) i < 10
-        match(Token.SEMICOLON); // ;
-        Identifier varId = new Identifier(match(Token.ID));  // 반복 변수의 이름 가져와 Identifier생성(현재 토큰 스트림에서 ID토큰 가져와 변수명을 추출함) ex) i++
-        match(Token.ASSIGN); // 할당
-        Expr update = expr();  // 업데이트 식(보통 증감식, ex. i + 1 => varId부터해서 i += 1이 완성됨)
-        match(Token.RPAREN); // )
-
-        Stmt body = stmt();  // for 루프의 body
-
-        Stmts combinedStmts = new Stmts(); //for 루프를 while루프로 바꿔주기 위해서는 Stmt* 필요 why? for문 body(1개 stmt) + i +=1(1개 Assignment식(stmt 상속)
-        combinedStmts.stmts.add(body); //for문 body 추가
-        combinedStmts.stmts.add(new Assignment(varId, update)); //for문의 업데이트 식, Assignment이기에 i(varId) =(ASSIGN) i + 1(update)
-
-        // while 루프를 생성
-        While whileLoop = new While(condition, combinedStmts); //while(i<10) {for문 body, assignment(증감식)}
-
-        // 변수 선언과 초기화를 포함하는 let 문을 생성
-        Decl decl = new Decl(id, t, initExpr); //for 루프의 반복변수의 이름, 타입, 초기식 저장(int i = 0)
-        Decls decls = new Decls(); // 여러개의 반복변수 선언을 담을 수 있는 decls(int i = 0, int j = 0,...복수형 일수도 있음)
-        decls.add(decl); //decl객체 추가
-
-        return new Let(decls, new Stmts(whileLoop));  // let 문(반복변수 초기식 + while문)을 반환
+    private Let forStmt () {
+    // <forStmt> -> for (<type> id = <expr>; <expr>; id = <expr>) <stmt>
+        match(Token.FOR);
+        match(Token.LPAREN);
+        Decl d = decl();
+        Decls ds = new Decls(d); 
+	    Expr e1 = expr();
+        match(Token.SEMICOLON);
+        Identifier id = new Identifier(match(Token.ID));
+        match(Token.ASSIGN);
+	    Expr e2 = expr();
+	    Assignment assign = new Assignment(id, e2);
+        match(Token.RPAREN);
+        Stmt s = stmt();
+        Stmts s1 = new Stmts(s); 
+	    s1.stmts.add(assign);
+	    Stmts s2 = new Stmts(new While(e1,s1));
+	    return new Let(ds, s2);
     }
-
 
     private Expr expr () {
     // <expr> -> <bexp> {& <bexp> | '|'<bexp>} | !<expr> | true | false
         switch (token) {
 	    case NOT:
 	        Operator op = new Operator(match(token));
-	        Expr e = expr();
+	    Expr e = expr();
             return new Unary(op, e);
         case TRUE:
             match(Token.TRUE);
@@ -265,30 +265,27 @@ public class Parser {
             match(Token.FALSE);
             return new Value(false);
         }
-        
+
         Expr e = bexp();
-        
-        // parse logical operations
+     // parse logical operations
         while (token == Token.AND || token == Token.OR) {
             Operator op = new Operator(match(token));
             Expr b = bexp();
             e = new Binary(op, e, b);
         }
-        
         return e;
     }
 
     private Expr bexp() {
         // <bexp> -> <aexp> [ (< | <= | > | >= | == | !=) <aexp> ]
         Expr e = aexp();
-
+        
         switch(token) {
         case LT: case LTEQ: case GT: case GTEQ: case EQUAL: case NOTEQ:
             Operator op = new Operator(match(token));
             Expr a = aexp();
             e = new Binary(op, e, a);
         }
-        
         return e;
     }
   
@@ -313,11 +310,11 @@ public class Parser {
         }
         return t;
     }
-  
-    private Expr factor() { 
-        // <factor> -> [-](id | <call> | literal | '('<aexp> ')')
+
+    private Expr factor() {
+        // <factor> -> [-](id | id'['<expr>']' | <call> | literal | '('<aexp> ')')
         Operator op = null;
-        if (token == Token.MINUS) 
+        if (token == Token.MINUS)
             op = new Operator(match(Token.MINUS));
 
         Expr e = null;
@@ -325,17 +322,25 @@ public class Parser {
         case ID:
             Identifier v = new Identifier(match(Token.ID));
             e = v;
+            if (token == Token.LBRACKET) {	// id[<expr>]
+            	// TODO: [Fill the code for using array elements]
+            	// Set the AST of Array(Identifier s, Expr e) to Expr e
+                match(Token.LBRACKET);
+                Expr index = expr();
+                match(Token.RBRACKET);
+                e = new Array(v, index);
+            }
             break;
-        case NUMBER: case STRLITERAL: 
+        case NUMBER: case STRLITERAL:
             e = literal();
-            break; 
-        case LPAREN: 
-            match(Token.LPAREN); 
-            e = aexp();       
+            break;
+        case LPAREN:
+            match(Token.LPAREN);
+            e = aexp();
             match(Token.RPAREN);
-            break; 
-        default: 
-            error("Identifier | Literal"); 
+            break;
+        default:
+            error("Identifier | Literal");
         }
 
         if (op != null)
@@ -374,7 +379,7 @@ public class Parser {
 	        parser  = new Parser(new Lexer());
 	        do {
 	            if (parser.token == Token.EOF) 
-		        parser.token = parser.lexer.getToken();
+		            parser.token = parser.lexer.getToken();
 
                 try {
                     command = parser.command();
