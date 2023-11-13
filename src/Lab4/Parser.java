@@ -50,14 +50,14 @@ public class Parser {
 	   String id = match(Token.ID);
 	   Decl d = null;
 
-	   if (token == Token.LBRACKET) {
+	   if (token == Token.LBRACKET) { // 현재 토큰이 왼쪽 대괄호 '[' 라면? => 배열 선언 시작을 의미함
 		   // TODO: [Fill the code for array declaration (<type> id [n];)]
 		   // Use the AST of "Decl (String s, Type t, int n)"
 		   // ex) Value n = literal();, n.intValue() ...
-           match(Token.LBRACKET);
-           Value n = literal();
-           match(Token.RBRACKET);
-           d = new Decl(id, t, n.intValue());
+           match(Token.LBRACKET); //match메서드를 통해 '['토큰과 일치하는지 확인, ex) [
+           Value n = literal(); //literal()을 통해 리터럴 값 파싱한 걸 Value타입(int, bool, String)중 하나 n에 저장, ex) n
+           match(Token.RBRACKET); //오른쪽 대괄호 확인(배열 크기를 나타내는 숫자 뒤의 `]`를 소비), ex) ]
+           d = new Decl(id, t, n.intValue()); //Decl객체 생성하여 배열 선언, t(<type>)타입의 크기가 n인 id 배열
        } else if (token == Token.ASSIGN) {
 	        match(Token.ASSIGN);
             Expr e = expr();
@@ -175,10 +175,11 @@ public class Parser {
         if (token == Token.LBRACKET) {  // id[<expr>] = <expr>;
         	// TODO: [Fill the code for assignment to array elements]
         	// Set the AST of Array(Identifier s, Expr e) to Array ar
-            match(Token.LBRACKET);
-            Expr index = expr();
-            match(Token.RBRACKET);
-            ar = new Array(id, index);
+            //기본적으로 대입문이므로 arr[3] = 5와같은 stmt를 만드는게 목적임
+            match(Token.LBRACKET); //왼쪽 대괄호 확인
+            Expr index = expr(); //대괄호안의 인덱스를 파싱하여 인덱스 가져옴, 예시로 index 5
+            match(Token.RBRACKET); //오른쪽 대괄호를 확인하고 소비
+            ar = new Array(id, index); // id배열의 index 객체 생성 ex. arr[3]
         }
 
         match(Token.ASSIGN);
@@ -325,10 +326,13 @@ public class Parser {
             if (token == Token.LBRACKET) {	// id[<expr>]
             	// TODO: [Fill the code for using array elements]
             	// Set the AST of Array(Identifier s, Expr e) to Expr e
-                match(Token.LBRACKET);
-                Expr index = expr();
-                match(Token.RBRACKET);
-                e = new Array(v, index);
+                // 현재 토큰이 왼쪽 대괄호(`[`)인 경우, 배열 요소에 접근하자
+                match(Token.LBRACKET); // 왼쪽 대괄호를 확인하고 소비
+                Expr index = expr(); // 대괄호 안의 표현식(배열 인덱스)을 파싱,예: 3 in arr[3]
+                match(Token.RBRACKET); //오른쪽 대괄호를 확인하고 소비
+                e = new Array(v, index); //배열 요소 접근을 나타내는 'Array' 객체를 생성하고, 'e'에 저장,
+                // 'v'는 배열의 이름, 'index'는 접근할 배열 요소의 인덱스
+
             }
             break;
         case NUMBER: case STRLITERAL:

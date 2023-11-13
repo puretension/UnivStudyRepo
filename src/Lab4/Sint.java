@@ -55,27 +55,25 @@ public class Sint {
         	// ex) Value[] ar = ....;	// Array can be represented the array of Value
         	//     ar[index] = v;		// Replace array element
 
-
-            // It's an assignment to an array element
-            // Evaluate the index where the assignment should happen
-            Value indexValue = V(a.ar.expr, state);
+            Value indexValue = V(a.ar.expr, state); // 업데이트할 배열 요소를 찾기 위해 인덱스의 표현식을 평가
+            // index => 정수?(안전추출)
             if (!(indexValue != null && ((Value)indexValue).type() == Type.INT)) {
                 throw new IllegalArgumentException("Array index must be of type integer");
             }
-            int index = ((Value)indexValue).intValue();
+            int index = ((Value)indexValue).intValue(); //인덱스(정수)값 추출
 
-            // Retrieve the array from the state
-            Value arrayValue = state.get(a.ar.id);
+            Value arrayValue = state.get(a.ar.id); // 배열의 식별자(id)를 사용하여 상태에서 배열을 검색(안전 체크)
             if (!(arrayValue != null && ((Value)arrayValue).type() == Type.ARRAY)) {
+                // 검색된 값이 실제로 배열인지 확인
                 throw new IllegalArgumentException("Identifier does not refer to an array");
             }
 
-            // Update the specified index with the new value
-            Value[] array = ((Value)arrayValue).arrValue();
+            Value[] array = ((Value)arrayValue).arrValue(); // Value 객체에서 내부 배열에 접근(안전 체크)
             if (index < 0 || index >= array.length) {
+                // 인덱스 배열 범위 내인지 체크
                 throw new IndexOutOfBoundsException("Array index out of bounds");
             }
-            array[index] = v;
+            array[index] = v; //배열 내 원소값 업데이트
 
         	return state;
         }
@@ -140,15 +138,11 @@ public class Sint {
 			    	// Regarding array declaration, 
 			    	// create an array (new Value[arraysize])
 			    	// and push (id, new Value(array)) to the state.
-
-                    ///
-                    // Create an array with the specified size and default values
-                    Value[] array = new Value[decl.arraysize];
+                    Value[] array = new Value[decl.arraysize]; // 지정된 크기(arraysize)와 기본값을 가진 배열을 생성
                     for (int i = 0; i < decl.arraysize; i++) {
-                        array[i] = new Value(decl.type); // Assume a constructor that takes a Type and creates a Value
+                        array[i] = new Value(decl.type); // Type을 입력으로 받아 Value를 생성하는 생성자를 가정
                     }
-                    // Push the new array onto the state
-                    state.push(decl.id, new Value(array)); // Assume Value can also hold an array
+                    state.push(decl.id, new Value(array)); // 새 배열을 상태에 추가
 	            }
 	            else if (decl.expr == null)
 	                state.push(decl.id, new Value(decl.type));
@@ -232,22 +226,24 @@ public class Sint {
         	//     Value[] vs = v.arrValue();
         	//     return (vs[index])
 
-            ///
-            Array arrayAccess = (Array) e;
-            Value arrayValue = state.get(arrayAccess.id); // 배열 객체를 가져옵니다.
+            Array arrayAccess = (Array) e; // 배열 접근을 나타내는 객체를 생성
+            Value arrayValue = state.get(arrayAccess.id); // 상태에서 배열 객체 추출
+            // 가져온 객체가 실제로 배열인지 확인
             if (!(arrayValue != null && arrayValue.type() == Type.ARRAY)) {
                 throw new IllegalArgumentException("Identifier does not refer to an array");
             }
-            Value indexValue = V(arrayAccess.expr, state); // 인덱스 표현식을 평가합니다.
+            Value indexValue = V(arrayAccess.expr, state); // 인덱스 표현식을 평가하여 인덱스추출
+            //정수인지 확인
             if (!(indexValue != null && indexValue.type() == Type.INT)) {
                 throw new IllegalArgumentException("Array index must be of type integer");
             }
-            int index = indexValue.intValue();
-            Value[] values = arrayValue.arrValue();
+            int index = indexValue.intValue(); // 인덱스의 정수 값추출
+            Value[] values = arrayValue.arrValue(); // 배열 객체에서 내부 배열가져오고
+            // 인덱스가 배열의 범위 내에 있는지 확인
             if (index < 0 || index >= values.length) {
                 throw new IndexOutOfBoundsException("Array index out of bounds");
             }
-            return values[index]; // 배열 요소의 값을 반환합니다.
+            return values[index]; // 배열의 해당 인덱스 위치에 있는 값을 반환
 
 	    }
         if (e instanceof Binary) {
