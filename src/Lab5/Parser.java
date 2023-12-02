@@ -193,7 +193,7 @@ public class Parser {
         
         // [Function]
         // TODO: [Implement the code for function declaration in let stmt]
-        Functions fs = null;//함수 선언을 저장할 Functions 객체를 초기화! 이는 아래에 있듯이, 'let' 문 내에 선언된 모든 함수를 저장할
+        Functions fs = null;//함수 선언을 저장할 Functions 객체를 초기화! 이는 아래에 있듯이, 'let' 문 내에 선언된 모든 함수를 저장
         // There is a Function declaration in Let statement
          if(token == Token.FUN) { //{: 현재 토큰이 함수 선언을 나타내는 'fun' 키워드인지 확인
         	fs = functions(); // functions() 메서드를 호출하여 'let' 문 내의 모든 함수 선언을 파싱하고 Functions 객체에 저장함

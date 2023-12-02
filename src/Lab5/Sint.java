@@ -58,7 +58,6 @@ public class Sint {
          state = newFrame(state, c, f); // 새로운 스택 프레임을 생성하고 함수의 매개변수를 스택에 푸시( 함수 호출 시에 필요한 새로운 변수 환경을 설정하기 위함)
          state = Eval(f.stmt, state); //f.stmt는 호출된 함수의 본문이며, Eval()은 이 함수 본문을 현재 상태(state)에서 실행
          state = deleteFrame(state, c, f); //끝낫으니, deleteFrame 메서드를 통해 스택 프레임을 제거
-        
 	    return state;
     }
     
