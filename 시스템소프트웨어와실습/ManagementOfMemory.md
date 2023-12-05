@@ -24,6 +24,9 @@ Many multiprogramming and multiprocessing 시스템은
 
 가변분할은 `first-fit allocation, best-fit allocation`방식이다.(추가적으로 가변분할시 OS는 메모리영역의 **linkedList가 유지**관리되고, 분할이 해제되면 **freeList가 반환**된다)
 
+가변분할 기법의 장점은 MultiProgramming 가능, 메모리 사용 효율 높음, Job에 따른 파티션크기만 잘 조절하면 메모리 효율 극대화 
+단점은 Fragmentation 메모리 낭비, 전체 사용시 돌아갈 수 있는 큰 프로그램은 못들어감
+
 ### 고정분할(fixed Partition)
 
 - 작업 크기가 특정값들로 `cluster`될때, **작업 크기의 분포가** **자주 변하지 않을 때** 효과적
@@ -68,7 +71,13 @@ Many multiprogramming and multiprocessing 시스템은
 
 CPU가 `감독자 모드(supervisor mode)`일 때, 운영 체제는 메모리의 어떤 위치라도 참조**(reference)**할 수 있음
 
-**Memory Fragmentation** occurs: **사용 가능한 자유 메모리가 여러 개의 작은 블록**으로 나뉘어 있고, 각 블록이 **너무 작아 사용하기 어려운 상태**를 의미
+⭐️**Memory Fragmentation**⭐️occurs: **사용 가능한 자유 메모리가 여러 개의 작은 블록**으로 나뉘어 있고, 각 블록이 **너무 작아 사용하기 어려운 상태**를 의미
+
+### Quiz
+
+고정분할과 가변분할의 공통적인 문제로, 분할을 하지않고 메모리를 사용하면 메모리가 충분하지만 여러 작은 사이즈의 프로그램으로 쪼개면 메모리가 충분하지 않아 발생하는 문제는 무엇이며, 해결방법을 서술하라
+
+Memory Fragmentation 문제이며,  여러 작은 사이즈의 프로그램으로 쪼개어 메모리가 불충분할때 발생한다. Demand-paging systems은 fragmentation으로인한 메모리 낭비를 피하는데 효과적이다.
 
 ### relocatable partition, relocation register
 
@@ -173,7 +182,7 @@ PMT를 특별한 **고속 연관 메모리(비용)**에서 구현함.
 
 ### 그럼 해결책은?
 
-`Demand-paging systems` 은 `fragmentation` ******으로 인한 메모리 낭비를 대부분 피할 수 있음******
+`⭐️Demand-paging systems⭐️` 은 `fragmentation` ******으로 인한 메모리 낭비를 대부분 피할 수 있음******
 
 ### why?
 
@@ -192,6 +201,8 @@ W 페이지 이상이 메모리에 있으면 성능이 만족스러울 것.
 ‘W’는 프로그램의 페이지 **working set의 크기**
 
 가상 메모리 주소와 실제 메모리 주소의 연결은 메모리 참조가 수행될 때까지 이루어지지 않는다.
+
+보통 프로그램을 동작하면 전체 프로그램에서 실행하는 영역 근처의 메모리만 참조, 처음 1번만 실행되고 안돌리는 부분 why? → `locality of reference`
 
 ### **segmented virtual-memory system**
 
